@@ -1,11 +1,15 @@
 # Documentation technique — InfoLeader
 
-Analyse du code présent dans le dossier `C:\wamp64\www\infoleader` (dépôt Git, commit `d065bba` du 13/10/2026).
+Analyse du site de fin de TP 2 présent dans le dossier `C:\wamp64\www\infoleader`
+(contenu identique au commit Git `fb1f466` du 13/10/2026).
 
 **Lecture des sources.** Chaque affirmation est suivie de sa source entre parenthèses ou dans une colonne « Source ».
 
-- Un **chemin** (ex. `app/Services/AuthService.php`) désigne un fichier du dépôt.
-- **Environnement** désigne une information lue sur le poste WAMP (version, réglage de `php.ini`). Elle n'est pas dans le dépôt.
+- Un **chemin** (ex. `admin/includes/auth.php`) désigne un fichier du dépôt.
+  Les fonctions citées entre parenthèses se trouvent dans ce fichier.
+- **Environnement** désigne une information lue sur le poste WAMP (version, `php.ini`, `httpd-vhosts.conf`).
+  Elle n'est pas dans le dépôt.
+- **Test** désigne un résultat observé en ouvrant l'adresse sous WAMP (code de réponse, en-têtes, taille mesurée).
 - **Historique Git** désigne une information tirée de la commande `git log`.
 - **Absent** signale qu'une information ou une fonctionnalité n'existe pas dans le code.
 
@@ -29,67 +33,70 @@ Analyse du code présent dans le dossier `C:\wamp64\www\infoleader` (dépôt Git
 ### 1.1 À quoi sert le site
 
 InfoLeader est le site vitrine d'une entreprise fictive qui vend des périphériques informatiques
-(`README.md`, `resources/views/pages/home.php`).
+(`README.md`, `index.php`).
 Il comprend un site public et un panneau d'administration réservé à un administrateur unique
-(`routes/web.php`, `app/Models/AdminAccount.php`).
+(`admin/`, `admin/includes/auth.php` : « Compte administrateur unique »).
 
 ### 1.2 Fonctionnalités du site public
 
-| Page | Adresse | Fonctionnalités | Source |
+| Page | Fichier | Fonctionnalités | Source |
 |---|---|---|---|
-| Accueil | `/` | Bannière, slogan, bouton vers les produits, présentation, vignettes de catégories, 3 engagements, bandeau vers le contact | `resources/views/pages/home.php` |
-| Nos Produits | `/produits` | 6 produits en grille (image, catégorie, nom, description, prix), recherche en temps réel, compteur de résultats | `resources/views/pages/products.php`, `resources/data/products.json`, `public/js/script.js` |
-| Contact | `/contact` | Formulaire nom / email / message ; validation en JavaScript puis en PHP ; aucun e-mail envoyé ; message enregistré | `public/js/script.js` (`validateForm`), `app/Http/Controllers/ContactController.php`, `helpers.php` (`journal_contact`) |
+| Accueil | `index.php` | Bannière, slogan, bouton vers les produits, présentation, vignettes de catégories, 3 engagements, bandeau vers le contact | `index.php` |
+| Nos Produits | `products.php` | 6 produits en grille (image, catégorie, nom, description, prix), recherche en temps réel, compteur de résultats | `products.php`, `products.json`, `script.js` |
+| Contact | `contact.php` | Formulaire nom / email / message ; validation en JavaScript puis en PHP ; aucun e-mail envoyé ; message enregistré dans un fichier | `script.js` (`validateForm`), `contact.php` |
 
 ### 1.3 Fonctionnalités du panneau d'administration
 
-| Fonction | Adresse | Source |
+| Fonction | Fichier | Source |
 |---|---|---|
-| Création du compte au premier lancement | `/admin/installation` | `app/Http/Controllers/Admin/AuthController.php` (`setup`) |
-| Connexion avec anti-brute force | `/admin/connexion` | `AuthController.php` (`login`), `app/Services/RateLimiter.php` |
-| Mot de passe oublié (code à 8 chiffres) | `/admin/mot-de-passe-oublie`, `/admin/reinitialisation` | `app/Http/Controllers/Admin/PasswordResetController.php` |
-| Tableau de bord : 4 outils et informations du compte | `/admin` | `app/Http/Controllers/Admin/DashboardController.php`, `resources/views/admin/dashboard.php` |
-| Configuration des e-mails : PHP `mail()` ou Brevo, test d'envoi | `/admin/emails` | `app/Http/Controllers/Admin/EmailController.php` |
-| Mot de passe | `/admin/mot-de-passe` | `app/Http/Controllers/Admin/PasswordController.php` |
-| Utilisateur : adresse de connexion | `/admin/utilisateur` | `app/Http/Controllers/Admin/UserController.php` |
-| Maintenance : Système, Journaux, Sauvegarde, Purger `storage/tmp` | `/admin/maintenance` | `app/Http/Controllers/Admin/MaintenanceController.php` |
+| Création du compte au premier lancement | `admin/setup.php` | `admin/setup.php` |
+| Connexion avec anti-brute force, fenêtre « Mot de passe oublié » | `admin/index.php` | `admin/index.php`, `admin/includes/ratelimit.php` |
+| Mot de passe oublié : code à 8 chiffres, puis nouveau mot de passe | `admin/forgot.php`, `admin/reset.php` | `admin/includes/reset.php` |
+| Tableau de bord : 4 outils et informations du compte | `admin/panel.php` | `admin/panel.php` |
+| Configuration des e-mails : PHP `mail()` ou Brevo, test d'envoi | `admin/email.php` | `admin/includes/mailconfig.php`, `admin/includes/mailer.php` |
+| Mot de passe : modification | `admin/password.php` | `admin/password.php` |
+| Utilisateur : adresse email de connexion | `admin/user.php` | `admin/user.php` |
+| Maintenance : Système, Journaux, Sauvegarde, Purger `storage/tmp` | `admin/maintenance.php` | `admin/includes/maintenance.php` |
+| Déconnexion | `admin/logout.php` | `admin/logout.php` |
 
 ### 1.4 Historique du projet
 
 | Étape | Contenu | Source |
 |---|---|---|
 | TP 1 et TP 2 | Site vitrine, puis panneau d'administration | Historique Git (commit `bd33603`), `README.md` |
-| Sécurité du dépôt | Blocage de l'accès web au dossier `.git` | Historique Git (commit `fb1f466`) |
-| TP 3, atelier 1 | Réorganisation en MVC avec un framework « maison » | Historique Git (commits `63ebf0a`, `d065bba`), `README.md` |
+| Sécurité du dépôt | Blocage de l'accès web au dossier `.git` | Historique Git (commit `fb1f466`), `.htaccess` |
 
 ### 1.5 Points forts
 
-- **Architecture lisible** : un seul point d'entrée, contrôleurs courts, logique métier dans des services
-  (`public/index.php`, `app/Http/Controllers/`, `app/Services/`).
 - **Panel protégé** : empreintes de mots de passe, clé SMTP chiffrée, jetons CSRF, anti-brute force,
-  sessions liées au compte (`AuthService.php`, `Encrypter.php`, `VerifyCsrfToken.php`, `RateLimiter.php`).
+  sessions liées au compte (`admin/includes/auth.php`, `secrets.php`, `bootstrap.php`, `ratelimit.php`).
+- **Code commun regroupé** : le panel réutilise les fonctions de `admin/includes/` et un gabarit HTML commun
+  (`admin/includes/layout.php`).
+- **Double validation** : chaque formulaire est contrôlé en JavaScript, puis de nouveau en PHP
+  (`script.js` et `contact.php` ; `admin/assets/admin.js` et les pages du panel).
 - **Retours clairs** : messages de succès et d'erreur, fenêtre de confirmation avant chaque action irréversible
-  (`resources/views/admin/partials/alert.php`, `resources/views/admin/partials/confirm-dialog.php`).
-- **Non-régression** : les anciennes adresses redirigent vers les nouvelles (`app/Http/Controllers/LegacyController.php`).
+  (`admin/includes/layout.php` : `alert_box` ; `admin/maintenance.php` : `confirm_dialog`).
+- **Données protégées** : `storage/`, `vendor/` et `admin/includes/` refusent tout accès depuis le navigateur
+  (`<dossier>/.htaccess` : `Require all denied` ; Test : code 403).
 - **Une seule bibliothèque**, sans gestionnaire de paquets : PHPMailer (`vendor/phpmailer/`, aucun `composer.json`).
-- **Code commenté en français** et réglages regroupés dans `config/`.
+- **Code commenté en français** et données affichées échappées (`htmlspecialchars`, fonction `e()` de `admin/includes/bootstrap.php`).
 
 ## 2. Stack technique
 
 | Élément | Valeur | Source |
 |---|---|---|
 | Environnement | WAMP sous Windows | `README.md` |
-| Serveur web | Apache. Le module `mod_rewrite` est nécessaire | `.htaccess`, `public/.htaccess` (`<IfModule mod_rewrite.c>`) |
-| Version d'Apache | 2.4.65 | Environnement (section Système de la Maintenance, `$_SERVER['SERVER_SOFTWARE']`) |
-| Langage serveur | PHP | `public/index.php` et tous les fichiers `.php` |
+| Serveur web | Apache | `.htaccess`, `README.md` |
+| Version d'Apache | 2.4.65 | Environnement (section Système de la Maintenance) |
+| Langage serveur | PHP | tous les fichiers `.php` |
 | Version de PHP | 8.3.28 | Environnement |
-| Version minimale | Le code utilise des nouveautés de PHP 8.0 : `match`, types `mixed` et union, propriétés de constructeur promues, `str_starts_with`. La Maintenance exige PHP 8.1 ou plus | `core/*.php`, `app/Services/MaintenanceService.php` (`version_compare`) |
-| Extensions PHP | `openssl`, `mbstring`, `json`, `session` | `app/Services/Encrypter.php` (`openssl_encrypt`), `app/Services/AuthService.php` (`mb_strtolower`), `app/Http/Middleware/StartSession.php` |
-| Framework | Framework « maison » inspiré de Laravel, écrit dans le projet | `core/` |
-| Front-end | HTML5, CSS3, JavaScript sans bibliothèque | `resources/views/`, `public/css/`, `public/js/` |
+| Version minimale | PHP 8.1 : le type de retour `never` est utilisé, et la Maintenance signale une erreur en dessous de 8.1. Le code utilise aussi `match` et `str_starts_with` (PHP 8.0) | `admin/includes/bootstrap.php` (`redirect`), `admin/includes/maintenance.php` (`version_compare`), `admin/reset.php` |
+| Extensions PHP | `openssl`, `mbstring`, `json`, `session` | `admin/includes/maintenance.php` (`system_checks`), `admin/includes/secrets.php` (`openssl_encrypt`) |
+| Framework | **Absent.** Pages PHP indépendantes et fonctions communes du panel | `admin/includes/` |
+| Front-end | HTML5, CSS3, JavaScript sans bibliothèque | `style.css`, `script.js`, `admin/assets/` |
 | Bibliothèque | PHPMailer 7.1.1, copiée dans `vendor/` sans Composer | `vendor/phpmailer/phpmailer/VERSION` ; absent : `composer.json` |
-| Stockage | Fichiers JSON et texte dans `storage/` | `app/Services/JsonStore.php` |
-| Base de données | **Absent.** Aucune connexion PDO ni requête SQL dans le code | Recherche de `PDO`, `SELECT`, `INSERT INTO` dans `app/` et `core/` : aucun résultat |
+| Stockage | Fichiers JSON et texte | `admin/includes/storage.php`, `contact.php`, `products.php` |
+| Base de données | **Absent.** Aucune connexion PDO ou mysqli, aucune requête SQL | Recherche de `PDO`, `mysqli`, `SELECT`, `INSERT INTO` : seules des balises HTML `<select>` sont trouvées |
 | Versionnage | Git | `.gitignore`, historique Git |
 
 ## 3. Arborescence du projet
@@ -98,339 +105,365 @@ Source : liste des fichiers suivis par Git (`git ls-files`).
 
 ```
 infoleader/
-├── .htaccess              Toutes les requêtes vers public/ ; HTTPS forcé hors local
+├── .htaccess              Renvoie une erreur 404 pour .git, .gitignore et .gitattributes
 ├── .gitignore             Exclut storage/ sauf storage/.htaccess
-├── README.md              Présentation, architecture, installation
-├── helpers.php            Fonctions globales : app(), env(), config(), url(), asset(), route(), view(),
-│                          redirect(), e(), client_ip(), format_date(), csrf_token(), csrf_field(),
-│                          flash(), take_flashes(), journal_contact()
-├── bootstrap/app.php      Chargement automatique des classes, création de l'Application, providers
-├── core/                  Noyau du framework
-│   ├── Application.php    Chemins, chargement de config/, providers, run()
-│   ├── Container.php      Conteneur de services : fabrique les objets et leurs dépendances
-│   ├── Facade.php         Accès statique à un service (Route::get)
-│   ├── Request.php        Requête HTTP : chemin, champs, fichiers, IP, chemin de base
-│   ├── Response.php       Réponses HTML, JSON, redirection, téléchargement
-│   ├── Route.php          Une route : méthodes, adresse, action, middlewares, nom
-│   ├── Router.php         Groupes, middlewares, recherche de la route, génération d'URL
-│   ├── ServiceProvider.php Classe de base des providers
-│   └── View.php           Moteur de templates : @extends, @section, @yield, @include, @if, @foreach, {{ }}
-├── app/
-│   ├── Facades/Route.php  Façade du routeur
-│   ├── Http/Kernel.php    Middlewares globaux, alias, page d'erreur 500
-│   ├── Http/Controllers/  Controller (base), Home, Product, Contact, Legacy
-│   │   └── Admin/         Auth, PasswordReset, Dashboard, Email, Password, User, Maintenance
-│   ├── Http/Middleware/   SecurityHeaders, AdminHeaders, StartSession, VerifyCsrfToken,
-│   │                      Authenticate, RedirectIfAuthenticated, ThrottleLogin
-│   ├── Models/            AdminAccount, Message, Product
-│   ├── Providers/         AppServiceProvider, RouteServiceProvider, ViewServiceProvider
-│   └── Services/          AuthService, RateLimiter, PasswordResetService, MailConfig, Mailer,
-│                          Encrypter, EventLog, JsonStore, MaintenanceService
-├── config/                app.php, admin.php, mail.php, rate.php, maintenance.php
-├── routes/web.php         Toutes les routes
-├── resources/
-│   ├── data/products.json Catalogue des produits
-│   └── views/
-│       ├── layouts/       site.php, admin.php, auth.php
-│       ├── partials/      site-header.php, site-footer.php
-│       ├── pages/         home.php, products.php, contact.php
-│       ├── admin/         Pages du panel ; partials/ : alertes, fenêtres, pagination, règles...
-│       └── errors/        404.php, 405.php, 500.php
-├── public/                Seul dossier servi au navigateur
-│   ├── index.php          Point d'entrée unique
-│   ├── .htaccess          Sert les fichiers réels, envoie le reste à index.php
-│   ├── css/               style.css (site), admin.css (panel)
-│   ├── js/                script.js (site), admin.js (panel)
-│   └── img/               banner.jpg, products/*.jpg
+├── README.md              Présentation, pages, sécurité, installation
+├── index.php              Page d'accueil
+├── products.php           Page « Nos Produits » (lit products.json)
+├── contact.php            Page « Contact » (validation PHP, enregistrement du message)
+├── products.json          Catalogue des 6 produits
+├── style.css              Feuille de style du site public
+├── script.js              JavaScript du site public
+├── assets/
+│   ├── banner.jpg         Image de la bannière d'accueil
+│   └── products/          Images des produits : casque, clavier, ecran, hub, souris, webcam (.jpg)
+├── admin/                 Panneau d'administration
+│   ├── index.php          Connexion et fenêtre « Mot de passe oublié »
+│   ├── setup.php          Création du compte (premier lancement)
+│   ├── forgot.php         Envoi du code de réinitialisation
+│   ├── reset.php          Saisie du code et du nouveau mot de passe
+│   ├── panel.php          Tableau de bord
+│   ├── email.php          Module « Configuration des e-mails »
+│   ├── password.php       Module « Mot de passe »
+│   ├── user.php           Module « Utilisateur »
+│   ├── maintenance.php    Module « Maintenance »
+│   ├── logout.php         Déconnexion
+│   ├── assets/            admin.css, admin.js
+│   └── includes/          Fonctions communes du panel (+ .htaccess)
+│       ├── bootstrap.php  Constantes, dossiers, en-têtes, session, CSRF, messages flash
+│       ├── storage.php    Lecture et écriture JSON avec verrou, journal des événements
+│       ├── auth.php       Compte, règles des mots de passe, session administrateur
+│       ├── ratelimit.php  Anti-brute force
+│       ├── reset.php      Code de réinitialisation
+│       ├── secrets.php    Chiffrement AES-256-GCM
+│       ├── mailconfig.php Réglages d'envoi des e-mails
+│       ├── mailer.php     Envoi des e-mails, fichier mail.log
+│       ├── maintenance.php Contrôles du système, journaux, sauvegarde
+│       └── layout.php     Gabarit HTML du panel (en-tête, alertes, titres)
 ├── storage/.htaccess      Seul fichier versionné de storage/ (données exclues par .gitignore)
-└── vendor/phpmailer/      PHPMailer : src/, language/phpmailer.lang-fr.php, LICENSE, VERSION
+└── vendor/                .htaccess et PHPMailer : src/, language/phpmailer.lang-fr.php, LICENSE, VERSION
 ```
 
-Les dossiers `app`, `bootstrap`, `config`, `core`, `resources`, `routes`, `storage` et `vendor`
-contiennent chacun un `.htaccess` « `Require all denied` » (fichiers `<dossier>/.htaccess`).
+Trois dossiers contiennent un `.htaccess` « `Require all denied` » : `storage/`, `vendor/` et `admin/includes/`.
 
 ## 4. Points d'entrée et routage
 
-### 4.1 Parcours d'une requête
+### 4.1 Principe
 
-1. Le `.htaccess` racine réécrit toute adresse vers `public/` (`.htaccess` : `RewriteRule ^(?!public/)(.*)$ public/$1`).
-2. Les fichiers existants (CSS, JS, images) sont servis tels quels. Le reste va à `index.php` (`public/.htaccess`).
-3. `public/index.php` charge `bootstrap/app.php` puis appelle `$app->run()` (`public/index.php`, `core/Application.php`).
-4. Le middleware global `SecurityHeaders` s'applique (`app/Http/Kernel.php`).
-5. Le routeur cherche la route, exécute ses middlewares puis l'action du contrôleur (`core/Router.php` : `dispatch`, `runRoute`, `pipeline`).
-6. Le contrôleur appelle modèles et services, puis renvoie une vue (`helpers.php` : `view()` ; `core/View.php`).
+- **Aucun routeur** : chaque adresse correspond à un fichier PHP, exécuté directement par Apache (arborescence ci-dessus).
+- **Pages publiques autonomes** : `index.php`, `products.php` et `contact.php` n'incluent aucun autre fichier PHP.
+- **Pages du panel** : elles commencent toutes par `require __DIR__ . '/includes/bootstrap.php'` (`admin/*.php`).
+  Ce fichier charge les fonctions communes, envoie les en-têtes de sécurité et démarre la session.
+- **Pages protégées** : elles appellent ensuite `require_login()`. Sans connexion valide, le visiteur est redirigé
+  vers `admin/index.php` (`admin/includes/auth.php` ; Test : code 302 vers `index.php`).
+- **Liens relatifs** : le site fonctionne à `http://localhost/infoleader` comme à `http://infoleader.local` (`README.md`).
 
-Le chemin de base est déduit de `SCRIPT_NAME` (`core/Request.php` : `basePath()`).
-Le site fonctionne donc aussi bien à l'adresse `http://localhost/infoleader` qu'à `http://infoleader.local` (`README.md`).
+### 4.2 Points d'entrée
 
-### 4.2 Routes
-
-Source : `routes/web.php`.
-
-| Méthode | Adresse | Contrôleur et méthode | Middlewares |
+| Fichier | Méthodes | Accès | Source |
 |---|---|---|---|
-| GET | `/` | `HomeController@index` | — |
-| GET | `/produits` | `ProductController@index` | — |
-| GET, POST | `/contact` | `ContactController@index` | — |
-| GET, POST | `/admin/installation` | `Admin\AuthController@setup` | admin, session, csrf |
-| GET | `/admin/connexion` | `Admin\AuthController@showLogin` | admin, session, csrf, guest |
-| POST | `/admin/connexion` | `Admin\AuthController@login` | admin, session, csrf, throttle |
-| POST | `/admin/mot-de-passe-oublie` | `Admin\PasswordResetController@send` | admin, session, csrf, throttle |
-| GET, POST | `/admin/reinitialisation` | `Admin\PasswordResetController@reset` | admin, session, csrf, throttle |
-| POST | `/admin/deconnexion` | `Admin\AuthController@logout` | admin, session, csrf |
-| GET | `/admin` | `Admin\DashboardController@index` | admin, session, csrf, auth |
-| GET, POST | `/admin/emails` | `Admin\EmailController@index` | admin, session, csrf, auth |
-| GET, POST | `/admin/mot-de-passe` | `Admin\PasswordController@index` | admin, session, csrf, auth |
-| GET, POST | `/admin/utilisateur` | `Admin\UserController@index` | admin, session, csrf, auth |
-| GET | `/admin/maintenance` | `Admin\MaintenanceController@index` | admin, session, csrf, auth |
-| POST | `/admin/maintenance` | `Admin\MaintenanceController@action` | admin, session, csrf, auth |
+| `index.php`, `products.php` | GET | Public | — |
+| `contact.php` | GET, POST | Public | `contact.php` |
+| `admin/setup.php` | GET, POST | Tant qu'aucun compte n'existe, depuis `127.0.0.1` ou `::1` (sinon refus, code 403) | `admin/setup.php`, `bootstrap.php` (`is_local_request`) |
+| `admin/index.php` | GET, POST | Public ; renvoie vers `setup.php` sans compte, vers `panel.php` si déjà connecté | `admin/index.php` |
+| `admin/forgot.php` | POST | Formulaire de la fenêtre « Mot de passe oublié » (GET : retour à la connexion) | `admin/forgot.php` |
+| `admin/reset.php` | GET, POST | Public, si un compte existe | `admin/reset.php` |
+| `admin/panel.php`, `email.php`, `password.php`, `user.php`, `maintenance.php` | GET (+ POST pour les modules) | Administrateur connecté | `require_login()` dans chaque fichier |
+| `admin/logout.php` | POST | Formulaire de l'en-tête du panel | `admin/logout.php`, `admin/includes/layout.php` (`admin_header`) |
 
-### 4.3 Middlewares
+### 4.3 Paramètres d'adresse
 
-Source : `app/Http/Kernel.php` et `app/Http/Middleware/`.
-
-| Alias | Classe | Rôle |
+| Page | Paramètres | Source |
 |---|---|---|
-| (global) | `SecurityHeaders` | Ajoute les en-têtes de sécurité à toutes les réponses |
-| `admin` | `AdminHeaders` | Interdit la mise en cache et l'affichage du panel dans un cadre |
-| `session` | `StartSession` | Démarre la session sécurisée |
-| `csrf` | `VerifyCsrfToken` | Refuse un formulaire POST sans jeton valide (statut 400) |
-| `auth` | `Authenticate` | Sans connexion valide : redirection vers `/admin/connexion` |
-| `guest` | `RedirectIfAuthenticated` | Administrateur déjà connecté : redirection vers `/admin` |
-| `throttle` | `ThrottleLogin` | Adresse IP bloquée : formulaire refusé, retour à la connexion |
+| `admin/email.php` | `tab` = `php` ou `brevo` | `admin/email.php` |
+| `admin/maintenance.php` | `section` = `systeme`, `journaux` ou `sauvegarde` ; `onglet` = `connexion` ou `contact` ; `filtre` = `success` ou `failure` ; `page` = numéro | `admin/maintenance.php` |
 
-### 4.4 Cas particuliers
+Une valeur inconnue est remplacée par la valeur par défaut (`in_array` et `isset` dans ces deux fichiers).
 
-- **Anciennes adresses** (`index.php`, `products.php`, `contact.php`, `admin/index.php`, `admin/setup.php`, `admin/reset.php`,
-  `admin/panel.php`, `admin/email.php`, `admin/password.php`, `admin/user.php`, `admin/maintenance.php`) :
-  redirection permanente (301), paramètres conservés (`routes/web.php`, `app/Http/Controllers/LegacyController.php`).
-- **Adresse inconnue** : vue `errors/404`, statut 404 (`core/Router.php`).
-- **Méthode non prévue** : vue `errors/405`, statut 405 (`core/Router.php`).
-- **Erreur imprévue** : enregistrée dans `storage/logs/app.log`, vue `errors/500` ;
-  le détail n'est affiché que si `debug` vaut `true` (`app/Http/Kernel.php` : `renderException`).
+### 4.4 Traitement des formulaires
+
+- Chaque formulaire est envoyé en POST à sa propre page.
+- **Panel** : le jeton CSRF est vérifié (`csrf_check`). En cas de succès, un message est mémorisé (`flash`)
+  puis la page redirige (`redirect`) : actualiser la page ne renvoie pas le formulaire (`admin/*.php`).
+- **Contact** : le résultat est affiché directement dans la réponse au POST, sans redirection (`contact.php` : `$success = true`).
+
+### 4.5 Cas particuliers
+
+| Situation | Résultat | Source |
+|---|---|---|
+| `storage/`, `vendor/`, `admin/includes/` | Code 403 | `<dossier>/.htaccess` ; Test |
+| `.git`, `.gitignore`, `.gitattributes` | Code 404 | `.htaccess` (`RedirectMatch 404`) ; Test |
+| Page inexistante | Page 404 par défaut d'Apache | **Absent** : aucune page d'erreur dans le dépôt ; Test |
+| Dossier sans `index.php` (ex. `/assets/`) | Liste des fichiers du dossier | Environnement : `Options +Indexes` dans `httpd-vhosts.conf` ; Test |
 
 ## 5. Stockage des données
 
 ### 5.1 Base de données
 
 **Absent.** Le site n'utilise aucune base de données : pas de tables, de relations ni de requêtes SQL
-(aucune occurrence de `PDO`, `SELECT` ou `INSERT INTO` dans `app/` et `core/`).
-Les appels `$request->query(...)` des contrôleurs lisent des paramètres d'URL, pas une base (`core/Request.php` : `query`).
+(aucune occurrence de `PDO`, `mysqli`, `SELECT` ou `INSERT INTO` hors balises HTML `<select>`).
 
 ### 5.2 Fichiers de données
 
-Les données sont enregistrées dans des fichiers du dossier `storage/`, exclu du dépôt (`.gitignore`) et protégé (`storage/.htaccess`).
+Les données du panel et les messages de contact sont dans `storage/`, exclu du dépôt (`.gitignore`) et protégé (`storage/.htaccess`).
+Les chemins sont définis par des constantes (`admin/includes/bootstrap.php`, sauf mention contraire).
 
 | Fichier | Format | Contenu | Source |
 |---|---|---|---|
-| `storage/config/admin.json` | JSON | Email, empreinte du mot de passe, dates de création, de connexion (et IP), de connexion précédente (et IP), de changement du mot de passe, de changement de l'email | `app/Models/AdminAccount.php`, `app/Services/AuthService.php` (`login`), `app/Http/Controllers/Admin/UserController.php` |
-| `storage/config/mail.json` | JSON | Mode actif (`php` ou `brevo`) ; pour chaque mode : expéditeur, destinataire ; pour Brevo : serveur, port, sécurité, identifiant, clé SMTP **chiffrée**, débogage ; dates d'enregistrement | `app/Services/MailConfig.php` (`validateBrevo`, `save`) |
-| `storage/config/app.key` | Texte (base64) | Clé de chiffrement de 32 octets, créée au premier besoin | `app/Services/Encrypter.php` |
-| `storage/security/ratelimit.json` | JSON | Par adresse IP : nombre d'échecs, date du dernier échec, prochain essai autorisé, fin de blocage | `app/Services/RateLimiter.php` |
-| `storage/security/reset.json` | JSON | Empreinte du code, dates de création et d'expiration, nombre d'essais, adresse IP | `app/Services/PasswordResetService.php` (`create`) |
-| `storage/logs/auth.log` | Une ligne JSON par événement | Date, type, adresse IP, détail | `app/Services/EventLog.php` (`log`) |
-| `storage/logs/contact.log` | Une ligne JSON par message | Date, IP, nom, email, message | `app/Models/Message.php` (`create`) |
-| `storage/logs/mail.log` | Texte | Mails non envoyés ou en échec ; copie et trace SMTP si le débogage est actif | `app/Services/Mailer.php` (`log`, `send`) |
-| `storage/logs/app.log` | Texte | Exceptions non prévues | `app/Http/Kernel.php` (`renderException`) |
-| `storage/framework/views/` | Fichiers PHP | Vues compilées (cache recréé automatiquement) | `core/View.php` (`compiled`), `app/Providers/ViewServiceProvider.php` |
-| `storage/tmp/` | — | Fichiers temporaires, vidés par « Purger storage/tmp » | `config/maintenance.php`, `app/Services/MaintenanceService.php` (`purgeTmp`) |
-| `resources/data/products.json` | JSON, versionné | 6 produits : `name`, `category`, `price` en texte (ex. `"149,99 €"`), `description`, `image` | `resources/data/products.json`, `app/Models/Product.php` (lecture seule) |
+| `storage/config/admin.json` | JSON | Email, empreinte du mot de passe, dates de création, de connexion (et IP), de connexion précédente (et IP), de changement du mot de passe, de changement de l'email | `admin/setup.php`, `admin/includes/auth.php` (`login_admin`), `admin/user.php` |
+| `storage/config/mail.json` | JSON | Mode actif (`php` ou `brevo`) ; pour chaque mode : nom et email de l'expéditeur, destinataire ; pour Brevo : serveur, port, sécurité, identifiant, clé SMTP **chiffrée**, débogage ; dates d'enregistrement | `admin/includes/mailconfig.php` (`validate_brevo`, `save_mail_settings`) |
+| `storage/config/app.key` | Texte (base64) | Clé de chiffrement de 32 octets, créée au premier besoin | `admin/includes/secrets.php` (`app_key`) |
+| `storage/security/ratelimit.json` | JSON | Par adresse IP : nombre d'échecs, date du dernier échec, prochain essai autorisé, fin de blocage | `admin/includes/ratelimit.php` |
+| `storage/security/reset.json` | JSON | Empreinte du code, dates de création et d'expiration, nombre d'essais, adresse IP | `admin/includes/reset.php` (`reset_create`) |
+| `storage/logs/auth.log` | Une ligne JSON par événement | Date, type, adresse IP, détail | `admin/includes/storage.php` (`log_event`) |
+| `storage/logs/contact.log` | Une ligne JSON par message | Date, IP, nom, email, message | `contact.php` (chemin écrit dans ce fichier) |
+| `storage/logs/mail.log` | Texte | Mails non envoyés ou en échec ; copie et trace SMTP si le débogage est actif | `admin/includes/mailer.php` (`mail_log`, `send_mail`) |
+| `storage/tmp/` | — | Fichiers temporaires, vidés par « Purger storage/tmp » | `admin/includes/maintenance.php` (`purge_tmp`) |
+| `products.json` | JSON, versionné | 6 produits : `name`, `category`, `price` en texte (ex. `"149,99 €"`), `description`, `image` | `products.json`, `products.php` (lecture seule) |
 
 ### 5.3 Écriture et accès
 
-- **Verrou** : `JsonStore::update()` pose un verrou exclusif (`flock`), lit, modifie puis réécrit (`app/Services/JsonStore.php`).
-- **Journaux** : ajout de lignes avec `FILE_APPEND | LOCK_EX` (`JsonStore::appendLine()`).
-- **Accès aux données** : les contrôleurs ne lisent ni n'écrivent de fichier eux-mêmes.
-  Ils passent par les modèles et les services (`app/Http/Controllers/` : aucun appel à `file_put_contents`, `fopen` ou `$_POST`).
-- **Sessions PHP** : leur emplacement n'est pas défini dans le code (absent de `app/Http/Middleware/StartSession.php`).
-  Le réglage de WAMP s'applique : `session.save_path = "c:/wamp64/tmp"` (Environnement : `phpForApache.ini`).
+- **Verrou** : `json_read` lit avec un verrou partagé ; `json_update` pose un verrou exclusif, lit, modifie puis réécrit
+  (`admin/includes/storage.php`, fonction `flock`).
+- **Journaux** : ajout de lignes avec `FILE_APPEND | LOCK_EX`
+  (`admin/includes/storage.php` : `log_event` ; `admin/includes/mailer.php` : `mail_log` ; `contact.php`).
+- **Dossiers** : `storage/config`, `security`, `logs` et `tmp` sont créés s'ils manquent
+  (`admin/includes/bootstrap.php` ; `contact.php` pour `logs`).
+- **Accès** : les pages du panel passent par les fonctions de `admin/includes/`. `contact.php` et `products.php`
+  lisent ou écrivent leur fichier eux-mêmes (`file_put_contents`, `file_get_contents`).
+- **Sessions PHP** : leur emplacement n'est pas défini dans le code (absent de `admin/includes/bootstrap.php`).
+  Le réglage de WAMP s'applique : `session.save_path = "c:/wamp64/tmp"` (Environnement : `php.ini`).
 
 ## 6. Authentification, sessions et sécurité
 
 ### 6.1 Compte administrateur
 
-- **Création** : via `/admin/installation`, depuis `127.0.0.1` ou `::1` uniquement, tant qu'aucun compte n'existe
-  (`AuthController.php` : `setup`).
-- **Mot de passe** : stocké sous forme d'empreinte avec `password_hash()`, vérifié avec `password_verify()` (`AuthService.php`).
+- **Création** : par `admin/setup.php`, depuis `127.0.0.1` ou `::1` uniquement, tant qu'aucun compte n'existe
+  (`admin/setup.php` ; `admin/includes/bootstrap.php` : `is_local_request`).
+- **Mot de passe** : stocké sous forme d'empreinte avec `password_hash()`, vérifié avec `password_verify()`
+  (`admin/includes/auth.php` : `hash_password`, `check_credentials`).
 - **Règles** : 20 caractères minimum, une minuscule, une majuscule, un chiffre, un caractère spécial
-  (`AuthService.php` : `passwordRules`, `passwordErrors` ; `config/admin.php`).
-  Elles sont cochées en direct pendant la saisie (`public/js/admin.js`).
+  (`admin/includes/auth.php` : `password_rules`, `password_errors` ; `bootstrap.php` : `PASSWORD_MIN_LENGTH`).
+  Elles sont cochées en direct pendant la saisie (`admin/assets/admin.js`).
 
 ### 6.2 Connexion et anti-brute force
 
-- **Message unique** en cas d'erreur : « Identifiant ou mot de passe incorrect » (`AuthController.php` : `login`).
-- **Pas d'indice** : le mot de passe est toujours vérifié, même si l'email est faux (`AuthService.php` : `checkCredentials`).
-- **Attente progressive** : 3, 3, 3, 10, 30, 60 puis 300 secondes après chaque échec (`config/rate.php` : `delays`).
-- **Blocage** : au 8e échec, l'adresse IP est bloquée 14 400 s, soit 4 h (`config/rate.php`, `RateLimiter.php` : `fail`).
-- **Oubli** : compteur effacé après 86 400 s sans échec (`config/rate.php`), et après une connexion réussie (`RateLimiter.php` : `clear`).
-- **Périmètre** : connexion (`AuthController.php`), code de réinitialisation (`PasswordResetController.php`),
-  mot de passe actuel des modules (`AuthService.php` : `verifyCurrentPassword`).
-- **IP bloquée** : tout formulaire d'authentification est refusé (`app/Http/Middleware/ThrottleLogin.php`).
+- **Message unique** en cas d'erreur : « Identifiant ou mot de passe incorrect » (`admin/index.php`).
+- **Pas d'indice** : le mot de passe est toujours vérifié, même si l'email est faux (`admin/includes/auth.php` : `check_credentials`).
+- **Attente progressive** : 3, 3, 3, 10, 30, 60 puis 300 secondes après chaque échec (`bootstrap.php` : `RATE_LIMIT_DELAYS`).
+  Pendant l'attente, le bouton affiche un compte à rebours (`admin/assets/admin.js`).
+- **Essai trop rapide** : refusé sans vérifier le mot de passe (`admin/index.php` : événement `login_rejected`).
+- **Blocage** : au 8e échec, l'adresse IP est bloquée 14 400 s, soit 4 h
+  (`bootstrap.php` : `RATE_LIMIT_BLOCK_AFTER`, `RATE_LIMIT_BLOCK_DURATION` ; `ratelimit.php` : `rate_limit_fail`).
+- **Oubli** : compteur effacé après 86 400 s sans échec (`RATE_LIMIT_FORGET_AFTER`), et après une connexion réussie
+  (`ratelimit.php` : `rate_limit_clear`).
+- **Périmètre** : connexion (`admin/index.php`), code de réinitialisation (`admin/reset.php`),
+  mot de passe actuel des modules Mot de passe et Utilisateur (`auth.php` : `verify_current_password`).
+- **IP bloquée** : la demande de code est refusée (`admin/forgot.php`).
 
 ### 6.3 Mot de passe oublié
 
-- Code de 8 chiffres tiré avec `random_int` (`PasswordResetService.php` : `create`).
-- Valable 300 s, 5 essais au maximum, un envoi toutes les 60 s (`config/admin.php` : `reset`).
-- Seule l'empreinte du code est stockée (`PasswordResetService.php`).
-- Envoyé au destinataire défini dans « Configuration des e-mails », sinon à l'email du compte (`Mailer.php` : `recipient`).
+- Code de 8 chiffres tiré avec `random_int` (`admin/includes/reset.php` : `reset_create`).
+- Valable 300 s, 5 essais au maximum, un envoi toutes les 60 s
+  (`bootstrap.php` : `RESET_CODE_TTL`, `RESET_CODE_MAX_ATTEMPTS`, `RESET_RESEND_DELAY` ; `admin/forgot.php`).
+- Seule l'empreinte du code est stockée (`admin/includes/reset.php`).
+- Envoyé au destinataire défini dans « Configuration des e-mails », sinon à l'email du compte
+  (`admin/includes/mailer.php` : `mail_recipient`).
 
 ### 6.4 Sessions
 
-- **Cookie** `IL_ADMIN`, `HttpOnly`, `SameSite=Strict`, `Secure` en HTTPS (`config/admin.php`, `StartSession.php`).
-- **Mode strict** et cookies seuls : `session.use_strict_mode`, `session.use_only_cookies` (`StartSession.php`).
-- **Nouvel identifiant** à la connexion : `session_regenerate_id(true)` (`AuthService.php` : `login`).
-- **Expiration** : 1 800 s d'inactivité ou 28 800 s au total (`config/admin.php`, `AuthService.php` : `check`).
-- **Lien avec le compte** : la session garde une empreinte du compte et devient invalide s'il change (`AuthService.php` : `fingerprint`, `check`).
-- **Autres sessions** déconnectées après un changement de mot de passe ou d'email (`AuthService.php` : `refreshSession`).
+- **Cookie** `IL_ADMIN`, `HttpOnly`, `SameSite=Strict`, `Secure` en HTTPS, supprimé à la fermeture du navigateur
+  (`admin/includes/bootstrap.php` : `session_set_cookie_params`).
+- **Mode strict** et cookies seuls : `session.use_strict_mode`, `session.use_only_cookies` (`bootstrap.php`).
+- **Nouvel identifiant** à la connexion : `session_regenerate_id(true)` (`admin/includes/auth.php` : `login_admin`).
+- **Expiration** : 1 800 s d'inactivité ou 28 800 s au total
+  (`bootstrap.php` : `SESSION_IDLE_TIMEOUT`, `SESSION_MAX_LIFETIME` ; `auth.php` : `is_logged_in`).
+- **Lien avec le compte** : la session garde une empreinte du compte et devient invalide s'il change
+  (`auth.php` : `account_fingerprint`, `is_logged_in`).
+- **Autres sessions** déconnectées après un changement de mot de passe ou d'email (`auth.php` : `refresh_admin_session`).
+- **Déconnexion** par un formulaire POST protégé par jeton CSRF (`admin/logout.php`).
 
 ### 6.5 Autres protections
 
 | Protection | Détail | Source |
 |---|---|---|
-| CSRF | Jeton secret dans chaque formulaire du panel, vérifié sur chaque POST | `helpers.php` (`csrf_token`, `csrf_field`), `app/Http/Middleware/VerifyCsrfToken.php` |
-| Échappement | `{{ }}` dans les vues appelle `e()`, soit `htmlspecialchars` | `core/View.php` (`compile`), `helpers.php` (`e`) |
-| Injection d'en-têtes mail | Retours à la ligne refusés dans « Configuration des e-mails » | `app/Services/MailConfig.php` (`hasLineBreak`) |
-| Clé SMTP | Chiffrée en AES-256-GCM, jamais réaffichée | `app/Services/Encrypter.php`, `resources/views/admin/email.php` |
-| Trace SMTP | Lignes d'authentification masquées | `app/Services/Mailer.php` (`redactSmtpLine`) |
-| Export JSON | Mot de passe, clé SMTP et jeton d'API retirés | `app/Services/MaintenanceService.php` (`backupData`) |
-| Purge | Seuls les fichiers situés dans `storage/tmp` sont supprimés | `MaintenanceService.php` (`purgeTmp`) |
-| En-têtes (partout) | `X-Content-Type-Options: nosniff`, `Referrer-Policy: same-origin`, `X-Frame-Options: SAMEORIGIN` | `app/Http/Middleware/SecurityHeaders.php` |
-| En-têtes (panel) | `X-Frame-Options: DENY`, `Cache-Control: no-store`, `X-Robots-Tag: noindex, nofollow` | `app/Http/Middleware/AdminHeaders.php` |
-| Fichiers sensibles | Inaccessibles depuis le navigateur | `.htaccess`, `public/.htaccess`, `<dossier>/.htaccess` |
-| HTTPS | Forcé, sauf `localhost`, `127.0.0.1`, `[::1]` et les noms en `.local`, `.test`, `.localhost` | `.htaccess` |
+| CSRF | Jeton secret dans chaque formulaire du panel, comparé avec `hash_equals` ; sinon arrêt avec le code 400 | `admin/includes/bootstrap.php` (`csrf_token`, `csrf_field`, `csrf_check`) |
+| Échappement | Données affichées passées dans `htmlspecialchars` | `contact.php`, `products.php`, `admin/includes/bootstrap.php` (`e`) |
+| Injection d'en-têtes mail | Retours à la ligne refusés dans « Configuration des e-mails » | `admin/includes/mailconfig.php` (`has_line_break`) |
+| Clé SMTP | Chiffrée en AES-256-GCM, jamais réaffichée | `admin/includes/secrets.php`, `admin/email.php` |
+| Trace SMTP | Lignes d'authentification masquées | `admin/includes/mailer.php` (`redact_smtp_line`) |
+| Export JSON | Mot de passe, clé SMTP et jeton d'API retirés | `admin/includes/maintenance.php` (`backup_data`) |
+| Purge | Seuls les fichiers situés dans `storage/tmp` sont supprimés, liens symboliques exclus | `admin/includes/maintenance.php` (`purge_tmp`) |
+| Adresse IP | Seule `REMOTE_ADDR` est utilisée (en-têtes `X-Forwarded-For` ignorés) | `admin/includes/bootstrap.php` (`client_ip`) |
+| En-têtes (panel) | `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: same-origin`, `Cache-Control: no-store` ; balise `robots` `noindex, nofollow` | `admin/includes/bootstrap.php`, `admin/includes/layout.php` (`page_start`) |
+| En-têtes (site public) | **Absent** : seul `X-Powered-By` est envoyé | Test (`index.php`, `contact.php`) |
+| Fichiers sensibles | `storage/`, `vendor/`, `admin/includes/` refusés (403) ; `.git` masqué (404) | `<dossier>/.htaccess`, `.htaccess` ; Test |
 
 ### 6.6 Journal des événements
 
 - **17 types** : connexion réussie, échec, tentative refusée, IP bloquée, code refusé, mot de passe actuel incorrect,
   compte créé, déconnexion, code demandé, mot de passe réinitialisé, mot de passe modifié, email modifié,
   configuration des e-mails, test d'envoi, fichiers temporaires purgés, journal vidé, sauvegarde exportée
-  (`app/Services/EventLog.php` : `types`).
-- **Affichage** : trois cartes dans la Maintenance — connexions réussies, échecs / blocages, total des événements
-  (`app/Http/Controllers/Admin/MaintenanceController.php` : `FILTERS`, `index`).
+  (`admin/includes/maintenance.php` : `event_types`).
+- **Affichage** : trois cartes dans la Maintenance (connexions réussies, échecs / blocages, total des événements),
+  20 événements par page (`admin/maintenance.php` ; `admin/includes/maintenance.php` : `log_filters`, `LOG_PER_PAGE`).
 
 ## 7. Front-end
 
 ### 7.1 HTML
 
 - **Balises sémantiques** : `header`, `nav`, `main`, `section`, `article`, `aside`, `footer`, `dialog` ; langue `fr`
-  (`resources/views/layouts/`, `resources/views/pages/contact.php`, `resources/views/admin/login.php`).
-- **Gabarits partagés** : `layouts/site.php`, `layouts/admin.php`, `layouts/auth.php` (`resources/views/layouts/`).
-- **Accessibilité** : 40 attributs `aria-*` (`aria-label`, `aria-current`, `aria-expanded`...), libellés reliés aux champs,
-  textes alternatifs (`resources/views/`).
+  (`index.php`, `contact.php`, `admin/index.php`, `admin/includes/layout.php`).
+- **Site public** : l'en-tête, le menu et le pied de page sont recopiés dans chacune des 3 pages
+  (`index.php`, `products.php`, `contact.php`).
+- **Panel** : gabarit commun produit par des fonctions PHP (`admin/includes/layout.php` : `page_start`, `page_end`, `admin_header`).
+- **Accessibilité** : 55 attributs `aria-*` (`aria-label`, `aria-current`, `aria-expanded`...), libellés reliés aux champs,
+  textes alternatifs (fichiers `.php` du site et du panel).
 
 ### 7.2 CSS
 
-- **Deux feuilles** : `public/css/style.css` (site) et `public/css/admin.css` (panel).
-- **Charte** : variables `--bleu: #0056b3`, `--gris: #2d2d2d`, `--blanc: #ffffff`, `--vert: #4caf50` (`public/css/style.css` : `:root`).
-- **Polices** : « Segoe UI », Roboto, Arial, sans-serif (`public/css/style.css` : `body`).
-- **Responsive « mobile-first »** : styles pour mobile, puis `@media (min-width: …)` (`public/css/style.css`, `public/css/admin.css`).
-- **Version des fichiers** : `?v=` suivi de la date de modification, pour éviter l'ancien cache (`helpers.php` : `asset`).
-- **Ressources externes** : **absent** (aucune police, feuille ou image chargée depuis un autre site dans `resources/views/`, `public/css/`, `public/js/`).
+- **Deux feuilles** : `style.css` (site) et `admin/assets/admin.css` (panel).
+- **Charte** : variables `--bleu: #0056b3`, `--gris: #2d2d2d`, `--blanc: #ffffff`, `--vert: #4caf50` (`style.css` et `admin.css` : `:root`).
+- **Polices** : « Segoe UI », Roboto, Arial, Helvetica, sans-serif (`style.css`, `admin.css` : `body`).
+- **Responsive « mobile-first »** : styles pour mobile, puis `@media (min-width: …)` à 600, 769 et 1100 px (`style.css`)
+  et à 700 et 1000 px (`admin.css`).
+- **Ressources externes** : **absent** (aucune police, feuille ou image chargée depuis un autre site).
 
 ### 7.3 JavaScript
 
-Écrit sans bibliothèque, avec `var` et `function` (`public/js/`). `admin.js` utilise aussi `Array.from`, les expressions
-régulières Unicode `\p{…}` et l'élément `<dialog>`, qui demandent un navigateur à jour.
+Écrit sans bibliothèque, avec `var` et `function` (`script.js`, `admin/assets/admin.js`).
+`admin.js` utilise aussi `Array.from`, les expressions régulières Unicode `\p{…}` et l'élément `<dialog>`,
+qui demandent un navigateur à jour.
 
 | Fichier | Rôle |
 |---|---|
-| `public/js/script.js` | Menu mobile, défilement fluide, fondu des sections, couleur du bouton au survol, filtre des produits, validation du contact |
-| `public/js/admin.js` | Messages qui disparaissent après 6 s, bouton bloqué pendant l'attente, fenêtres `<dialog>`, afficher / masquer le mot de passe, règles du mot de passe, contrôles avant envoi, sécurité SMTP liée au port, compte à rebours du code |
+| `script.js` | Menu mobile, défilement fluide, fondu des sections, couleur du bouton au survol, filtre des produits, validation du contact |
+| `admin/assets/admin.js` | Messages qui disparaissent après 6 s, bouton bloqué pendant l'attente, fenêtres `<dialog>`, afficher / masquer le mot de passe, règles du mot de passe, contrôles avant envoi, sécurité SMTP liée au port, compte à rebours du code |
 
 ### 7.4 Thème clair / sombre
 
-**Absent** : aucune règle `prefers-color-scheme` dans `public/css/style.css` ni `public/css/admin.css`.
+**Absent** : aucune règle `prefers-color-scheme` dans `style.css` ni `admin/assets/admin.css`.
 
 ## 8. Intégrations externes
 
 | Service | Usage | Source |
 |---|---|---|
-| **Brevo** : serveur SMTP `smtp-relay.brevo.com`, ports 587 et 2525 (STARTTLS) ou 465 (SSL) | Envoi du code de réinitialisation et des mails de test | `config/mail.php`, `app/Services/Mailer.php` |
-| **PHPMailer 7.1.1** | Client SMTP, messages d'erreur en français | `vendor/phpmailer/phpmailer/`, `Mailer.php` (`setLanguage('fr', …)`) |
-| Fonction PHP `mail()` | Mode « PHP mail » : fonctionne chez un hébergeur, échoue sous WAMP | `Mailer.php`, `resources/views/admin/email.php` (message d'information) |
+| **Brevo** : serveur SMTP `smtp-relay.brevo.com`, ports 587 et 2525 (STARTTLS) ou 465 (SSL) | Envoi du code de réinitialisation et des mails de test | `admin/includes/mailconfig.php`, `admin/includes/mailer.php` |
+| **PHPMailer 7.1.1** | Client SMTP, messages d'erreur en français | `vendor/phpmailer/phpmailer/`, `mailer.php` (`setLanguage('fr')`) |
+| Fonction PHP `mail()` | Mode « PHP mail » : prévu pour un hébergeur, sans serveur d'envoi sous WAMP | `admin/includes/mailer.php`, `admin/email.php` (message d'information) |
 
-**API externe et paiement : absents** (aucun appel `curl_*`, `fsockopen` ni `file_get_contents('http…')` dans `app/` et `core/` ;
-la seule connexion sortante est la connexion SMTP ouverte par PHPMailer).
+**API externe et paiement : absents.** Aucun appel `curl_*`, `fsockopen` ni `file_get_contents('http…')` ;
+la seule connexion sortante est la connexion SMTP ouverte par PHPMailer.
+L'export de la Maintenance indique : « Aucune API n'est configurée dans cette version du site » (`admin/includes/maintenance.php` : `backup_data`).
 
 ## 9. Configuration
 
-### 9.1 Fichiers de configuration
+### 9.1 Constantes du panel
 
 | Fichier | Réglages |
 |---|---|
-| `config/app.php` | Nom du site (`APP_NAME`, défaut « InfoLeader »), fuseau `Europe/Paris`, `debug` (`APP_DEBUG`, défaut `false`), liste des providers |
-| `config/admin.php` | Session : nom `IL_ADMIN`, 1 800 s d'inactivité, 28 800 s au maximum. Mot de passe : 20 caractères minimum. Code : 300 s, 5 essais, 60 s entre deux envois. Chemins des fichiers du compte |
-| `config/rate.php` | Délais d'attente, blocage après 8 échecs pendant 14 400 s, oubli du compteur après 86 400 s, fichier du compteur |
-| `config/mail.php` | Fichiers `mail.json` et `mail.log`, serveur Brevo par défaut, ports et sécurité associée, chemin de PHPMailer |
-| `config/maintenance.php` | Dossier temporaire, fichier des messages, pagination (20 événements, 10 messages), dossiers contrôlés |
+| `admin/includes/bootstrap.php` | Fuseau `Europe/Paris`. Chemins de `storage/` et de ses fichiers. Session : 1 800 s d'inactivité, 28 800 s au maximum. Mot de passe : 20 caractères minimum. Code : 300 s, 5 essais, 60 s entre deux envois. Anti-brute force : délais, blocage après 8 échecs pendant 14 400 s, oubli après 86 400 s |
+| `admin/includes/mailconfig.php` | Fichier `mail.json`, serveur Brevo par défaut, ports et sécurité associée |
+| `admin/includes/secrets.php` | Fichier `app.key` |
+| `admin/includes/maintenance.php` | Fichier `contact.log`, pagination (20 événements, 10 messages) |
 
-La configuration est chargée au démarrage et lue avec `config('fichier.cle')` (`core/Application.php` : `loadConfiguration`, `config`).
+### 9.2 Pages publiques
 
-### 9.2 Variables d'environnement
+Les chemins sont écrits directement dans les pages : `__DIR__ . '/products.json'` (`products.php`)
+et `__DIR__ . '/storage/logs'` (`contact.php`).
+Le chemin de `contact.log` est donc défini deux fois (`contact.php` et `admin/includes/maintenance.php` : `CONTACT_LOG_FILE`).
 
-`env()` lit un fichier `.env` à la racine, puis les variables du système (`helpers.php`).
-Le fichier `.env` est **absent** : les valeurs par défaut de `config/app.php` s'appliquent.
+### 9.3 Réglages saisis dans le panel
 
-### 9.3 Configuration hors du dépôt
+Compte administrateur et envoi des e-mails : `storage/config/admin.json` et `storage/config/mail.json`, non versionnés (`.gitignore`).
 
-- **Virtual host** `infoleader.local` : `httpd-vhosts.conf` d'Apache et fichier `hosts` de Windows (procédure dans `README.md`).
-- **Réglages saisis dans le panel** (compte, e-mails) : dans `storage/`, non versionné (`.gitignore`).
+### 9.4 Variables d'environnement
+
+**Absent** : aucun fichier `.env`, aucun appel à `getenv` ou `$_ENV`.
+
+### 9.5 Configuration hors du dépôt
+
+| Élément | Valeur | Source |
+|---|---|---|
+| Virtual host `infoleader.local` | `Options +Indexes +FollowSymLinks`, `AllowOverride All`, `Require local` | Environnement : `httpd-vhosts.conf` ; procédure dans `README.md` |
+| Fichier `hosts` de Windows | `127.0.0.1 infoleader.local` | `README.md` |
+| `php.ini` | `display_errors = On`, `expose_php = On`, `log_errors = On` vers `c:/wamp64/logs/php_error.log` | Environnement |
 
 ## 10. Limites connues et risques
 
-Classées de la plus importante à la moins importante.
+Classées de la plus importante à la moins importante, dans chaque thème.
+Le virtual host n'accepte que la machine locale (`Require local`, Environnement) : les risques de sécurité
+concernent surtout les bonnes pratiques à acquérir.
 
 ### 10.1 Sécurité
 
-1. **Formulaire de contact sans protection anti-abus.** La route `/contact` n'a ni jeton CSRF ni limitation (`routes/web.php`).
-   Un robot peut envoyer des messages en masse et remplir `storage/logs/contact.log` (`app/Models/Message.php`).
-2. **Codes de réinitialisation en clair dans `mail.log`.** Sans service d'envoi, en cas d'échec ou si le débogage est actif,
-   le mail complet est copié dans `storage/logs/mail.log` (`app/Services/Mailer.php` : `send`).
-   Ce fichier n'est ni purgé ni consultable dans le panel (`app/Http/Controllers/Admin/MaintenanceController.php` : seuls `auth` et `contact` sont purgeables).
-3. **Erreurs PHP affichables.** `display_errors = On` sous WAMP (Environnement : `phpForApache.ini`).
-   Les exceptions sont interceptées (`app/Http/Kernel.php`), mais un simple avertissement PHP s'afficherait dans la page.
-4. **Pas d'en-tête `Content-Security-Policy`** : absent de `app/Http/Middleware/SecurityHeaders.php`.
-5. **Anti-brute force fondé sur l'adresse IP seule** (`RateLimiter.php` : clé `$ip`). Sur un réseau partagé, un blocage touche
-   tous les utilisateurs. En local, `127.0.0.1` et `::1` sont deux clés différentes.
-6. **Clé de chiffrement à côté des données chiffrées** : `storage/config/app.key` et `storage/config/mail.json`
-   (`config/admin.php`, `config/mail.php`). Le chiffrement protège une copie partielle, pas un accès complet à `storage/`.
-7. **Recréation du compte.** Si `storage/config/admin.json` disparaît, une personne présente sur la machine peut créer
-   un nouveau compte via `/admin/installation` (`AuthController.php` : `setup`).
+1. **Formulaire de contact sans protection anti-abus.** `contact.php` n'a ni jeton CSRF, ni champ piège, ni limite d'envois.
+   Un robot peut envoyer des messages en masse et remplir `storage/logs/contact.log`.
+2. **Codes de réinitialisation en clair dans `mail.log`.** Le code est écrit dans le corps du mail (`admin/forgot.php`).
+   Sans service d'envoi, en cas d'échec ou si le débogage est actif, le mail complet est copié dans `storage/logs/mail.log`
+   (`admin/includes/mailer.php` : `send_mail`). Ce fichier n'est ni consultable ni vidable dans le panel
+   (`admin/includes/maintenance.php` : `purge_log` ne traite que `auth` et `contact`).
+3. **Informations techniques visibles depuis le navigateur** (Test) :
+   - liste des fichiers de `/assets/`, `/assets/products/` et `/admin/assets/` (Environnement : `Options +Indexes`) ;
+   - `README.md` lisible (code 200), comme tout fichier `.md` déposé à la racine ;
+   - en-tête `X-Powered-By: PHP/8.3.28`, qui révèle la version de PHP (Environnement : `expose_php = On`).
+4. **Pages publiques sans en-têtes de sécurité** : `index.php` et `contact.php` n'envoient que `X-Powered-By` (Test).
+   Aucune page n'envoie d'en-tête `Content-Security-Policy` (absent de `admin/includes/bootstrap.php`).
+5. **Erreurs PHP affichées dans les pages.** `display_errors = On` (Environnement) et aucun gestionnaire d'erreurs
+   (`set_error_handler`, `set_exception_handler` : absents). Par exemple, si `storage/` n'est plus accessible en écriture,
+   l'exception de `json_update` n'est pas interceptée (`admin/includes/storage.php`) : le message et le chemin du serveur s'affichent.
+6. **Anti-brute force fondé sur l'adresse IP seule** (`admin/includes/ratelimit.php` : clé `$ip`).
+   Sur un réseau partagé, un blocage touche tous les utilisateurs. En local, `127.0.0.1` et `::1` sont deux clés différentes.
+7. **Clé de chiffrement à côté des données chiffrées** : `storage/config/app.key` et `storage/config/mail.json`
+   (`admin/includes/secrets.php`, `admin/includes/mailconfig.php`). Le chiffrement protège une copie partielle,
+   pas un accès complet à `storage/`.
+8. **Recréation du compte.** Si `storage/config/admin.json` disparaît, une personne présente sur la machine peut créer
+   un nouveau compte via `admin/setup.php` (`admin_exists`, `is_local_request`).
 
-### 10.2 Fiabilité et exploitation
+### 10.2 Fiabilité et qualité du code
 
-8. **Aucun test automatisé** : aucun fichier de test, aucune intégration continue (absents du dépôt, pas de dossier `.github/`).
-9. **Journaux sans limite de taille.** `auth.log`, `contact.log` et `mail.log` ne sont jamais réduits.
-   Ils sont relus en entier à chaque affichage (`EventLog.php` : `entries` ; `Message.php` : `all`).
-10. **Cache des vues non surveillé.** `storage/framework/views` doit être accessible en écriture (`core/View.php` : `compiled`),
-    mais il manque dans la liste `'writable'` (`config/maintenance.php`). S'il devenait non accessible en écriture,
-    toutes les pages tomberaient en erreur 500 sans alerte dans la section Système.
-11. **`storage/logs/app.log` invisible dans le panel** : écrit par `app/Http/Kernel.php`, lu par aucun contrôleur.
-12. **Sauvegarde partielle** : l'export contient la configuration, pas les messages ni les journaux (`MaintenanceService.php` : `backupData`).
+9. **Message de contact enregistré deux fois.** Après un envoi réussi, la page répond directement au POST, sans redirection
+   (`contact.php` : `$success = true`). Actualiser la page (F5) renvoie le formulaire et enregistre le message une seconde fois.
+10. **Code dupliqué.** L'en-tête, le menu et le pied de page sont recopiés dans les 3 pages publiques
+    (`index.php`, `products.php`, `contact.php`) : chaque modification doit être faite 3 fois.
+    Le chemin de `contact.log` est aussi défini à deux endroits (section 9.2).
+11. **Aucun test automatisé** : aucun fichier de test, aucune intégration continue (absents du dépôt, pas de dossier `tests/` ni `.github/`).
+12. **Journaux sans limite de taille.** `auth.log`, `contact.log` et `mail.log` ne sont jamais réduits.
+    Les deux premiers sont relus en entier à chaque affichage de la Maintenance (`admin/includes/maintenance.php` : `read_json_lines`).
+13. **Sauvegarde partielle** : l'export contient la configuration, pas les messages ni les journaux
+    (`admin/includes/maintenance.php` : `backup_data`).
 
 ### 10.3 Données et fonctionnalités
 
-13. **Catalogue figé** : produits dans `resources/data/products.json`, sans gestion depuis le panel (`app/Models/Product.php` : lecture seule).
-14. **Prix stockés en texte** (`"149,99 €"` dans `resources/data/products.json`) : impossible de trier, filtrer ou calculer.
-15. **Lien « Un conseil ? »** : ouvre le contact sans indiquer le produit (`resources/views/pages/products.php` : `route('contact')` sans paramètre).
+14. **Catalogue figé** : produits dans `products.json`, sans gestion depuis le panel (`products.php` : lecture seule).
+15. **Prix stockés en texte** (`"149,99 €"` dans `products.json`) : impossible de trier, filtrer ou calculer.
+16. **Lien « Un conseil ? »** : ouvre le contact sans indiquer le produit (`products.php` : `href="contact.php"`).
 
-### 10.4 Accessibilité et ergonomie
+### 10.4 Données personnelles (RGPD)
+
+17. **Messages de contact conservés sans limite et sans information.** Nom, email, message et adresse IP sont enregistrés
+    (`contact.php`) sans durée de conservation : seule une suppression manuelle de tous les messages existe
+    (`admin/maintenance.php` : « Vider les messages »). Le formulaire n'informe pas le visiteur de cette collecte,
+    et le site n'a pas de page de mentions légales ou de confidentialité (pied de page : 3 liens seulement).
+
+### 10.5 Accessibilité et ergonomie
 
 Les ratios de contraste sont calculés selon la formule des WCAG 2.1 à partir des couleurs des feuilles de style.
 Le minimum (niveau AA) est de 4,5:1 pour le texte et 3:1 pour les bordures de champ.
 
-16. **Contrastes insuffisants** :
-    - bouton principal au survol, texte blanc (`--blanc`) sur vert `#4caf50` : **2,78:1** (`public/css/style.css` : `.btn-cta.hovered`) ;
-    - pastille « À surveiller », `#b26a00` sur `#fff6e5` : **3,95:1** (`public/css/admin.css` : `.pill-warn`) ;
+18. **Contrastes insuffisants** :
+    - bouton principal au survol, texte blanc sur vert `#4caf50` : **2,78:1** (`style.css` : `.btn-cta:hover`, `.btn-cta.hovered`) ;
+    - pastille « À surveiller », `#b26a00` sur `#fff6e5` : **3,95:1** (`admin/assets/admin.css` : `.pill-warn`) ;
     - bordures des champs, `#e2e7ee` sur `#ffffff` ou `#f5f7fa` : **1,24:1** et **1,16:1** (`--gris-bord` dans `style.css` et `admin.css`).
-17. **Zones cliquables petites** (44 × 44 px recommandés). Hauteurs mesurées dans le navigateur :
+19. **Zones cliquables petites** (44 × 44 px recommandés). Hauteurs mesurées dans le navigateur (Test) :
     - « Afficher » le mot de passe : 30 px (`admin.css` : `.toggle-password`, `padding: 6px 10px`) ;
     - « Mot de passe oublié ? » : 18 px (`admin.css` : `.link-button`, sans marge intérieure) ;
     - liens du pied de page : 26 px (`style.css` : `.footer-nav a`) ;
     - bouton du menu mobile : 40 × 42 px (`style.css` : `.menu-toggle`, `padding: 8px`).
-18. **Messages d'erreur temporaires** : ils disparaissent après 6 s (`resources/views/admin/partials/alert.php` : `data-autohide="6000"` ;
-    `public/js/admin.js`), sans rappel permanent sous les champs.
-19. **Animations non désactivables** : aucune règle `prefers-reduced-motion` dans `public/css/`.
-20. **Lien d'évitement « Aller au contenu »** : absent de `resources/views/layouts/`.
-21. **Fausses affordances** : les vignettes de catégories ressemblent à des cartes cliquables mais ne sont pas des liens
-    (`resources/views/pages/home.php` : `<li>` sans `<a>`).
+20. **Messages d'erreur temporaires** : ils disparaissent après 6 s (`admin/includes/layout.php` : `alert_box`, `data-autohide="6000"` ;
+    `admin/assets/admin.js` : `autohide`), sans rappel permanent sous les champs.
+21. **Animations non désactivables** : aucune règle `prefers-reduced-motion` dans `style.css` ni `admin.css`
+    (fondu des sections et défilement fluide : `script.js`).
+22. **Lien d'évitement « Aller au contenu »** : absent des pages publiques et du gabarit du panel.
+23. **Vignettes de catégories non cliquables** : les 6 catégories de l'accueil (image et nom) ne mènent pas aux produits
+    correspondants (`index.php` : `<li>` sans `<a>`).
